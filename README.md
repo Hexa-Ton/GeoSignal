@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="File_00000000f54871fba65b66b1b6f59653.png" width="100%">
+  <img src="file_00000000f54871fba65b66b1b6f59653.png" width="100%">
 </p>
 # 🛰️ GeoSignal
 **Advanced Geolocation Tracking Tool** with a High-Tech Terminal UI.

@@ -20,6 +20,7 @@ pkg install python git -y
 git clone https://github.com/Hexa-Ton/GeoSignal
 cd GeoSignal
 pip install requests
+pip install -r requirements.txt
 chmod +x geosignal.py
 python geosignal.py
 ```

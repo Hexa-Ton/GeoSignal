@@ -19,7 +19,7 @@ To install and run GeoSignal, execute these commands:
 pkg install python git -y
 git clone https://github.com/Hexa-Ton/GeoSignal
 cd GeoSignal
-pip install -r requirements.txt
+pip install request
 chmod +x geosignal.py
 python geosignal.py
 ```

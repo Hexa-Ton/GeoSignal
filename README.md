@@ -17,6 +17,8 @@ To install and run GeoSignal, execute these commands:
 
 ```bash
 pkg install python git -y
+pkg install cloudflared -y
+pkg install openssh -y
 git clone https://github.com/Hexa-Ton/GeoSignal
 cd GeoSignal
 pip install requests

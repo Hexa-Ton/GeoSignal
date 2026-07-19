@@ -25,7 +25,8 @@ cd GeoSignal
 pip3 install requests
 pip3 install -r requirements.txt
 chmod +x geosignal.py
-python3 geosignal.py```
+python3 geosignal.py
+```
 
 ## Termux 🛠️Installation
 To install and run GeoSignal, execute these commands:

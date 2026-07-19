@@ -12,10 +12,25 @@ GeoSignal is a powerful Python-based tool designed to capture precise location d
 * **High-Tech UI:** Premium Terminal Dashboard with military-grade design.
 * **One-Click Maps:** Generates an instant Google Maps overlay.
 
-## 🛠️ Installation
+## Kali Linux 🛠️Installation
+To install and run GeoSignal, execute these commands
+
+```bash
+sudo apt update && sudo apt install python3 python3-pip git -y
+sudo apt install cloudflared -y
+sudo apt install openssh-client -y
+git clone https://github.com/Hexa-Ton/GeoSignal
+cd GeoSignal
+pip3 install -r requirements.txt
+chmod +x geosignal.py
+python3 geosignal.py
+```
+
+## Termux 🛠️Installation
 To install and run GeoSignal, execute these commands:
 
 ```bash
+pkg update && pkg upgrade -y
 pkg install python git -y
 pkg install cloudflared -y
 pkg install openssh -y
